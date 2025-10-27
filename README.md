@@ -1,52 +1,111 @@
-Python Port Scanner with Web App Fingerprinting and Nmap Integration
+⚡ FastPort — Python TCP Port Scanner + Web App Fingerprinting + Nmap Integration ⚡
 
-This is a fast, multithreaded TCP port scanner written in Python, designed specifically for rapid reconnaissance with a focus on web application security. It includes custom socket logic for HTTP banner grabbing and integrates directly with the industry-standard Nmap tool for deep service version detection.
+A lightning-fast, multithreaded TCP port scanner written in pure Python — built for speedy reconnaissance and web app security checks. It does smart HTTP banner grabbing (with virtual host support) and can hand off results to Nmap for deeper service/version/script scanning.
 
-Key Features
+🔥 TL;DR
 
-Multithreaded Performance: Utilizes Python's ThreadPoolExecutor to handle concurrent connections, drastically reducing scan time.
+Blazing fast multi-threaded TCP port scanning.
 
-Web App Fingerprinting: Automatically performs HTTP HEAD requests on common web ports (80, 443, 8080, etc.) to extract HTTP status codes and the Server banner.
+HTTP HEAD banner grabbing on common web ports (80, 443, 8080, …).
 
-Virtual Host Support: The -H (--host-header) flag allows scanning targets behind load balancers or those using virtual hosting.
+Virtual host support with -H / --host-header.
 
-Nmap Integration (--nmap-scan): Pipes the list of discovered open ports to Nmap to execute advanced service version detection (-sV) and default script scanning (-sC).
+Pipe discovered ports into Nmap (--nmap-scan) for -sV -sC style discovery.
 
-Flexible Port Selection: Supports ranges (1-1024), comma-separated lists (80,443,22), or the fast-track top-ports scan (-F).
+No external Python packages required — just Python 3.x and (optionally) Nmap installed.
 
-Prerequisites
+✨ Key Features
 
-Python 3.x: No external Python libraries are required (only standard library modules are used).
+Multithreaded performance — ThreadPoolExecutor for concurrent connects.
 
-Nmap: The Nmap security scanner binary must be installed on your system and accessible via the system's PATH if you intend to use the --nmap-scan feature.
+Web app fingerprinting — automatic HTTP HEAD for status codes & Server headers.
 
-Usage
+Virtual host (Host:) support — target apps behind load balancers or vhosts.
 
-Run the scanner from your command line:
+Flexible port selection — ranges (1-1024), lists (80,443,22) or fast top-ports -F.
 
-python port_scanner.py <target_ip_or_hostname> [options]
+Nmap integration — automatically run nmap -sV -sC against discovered ports.
 
+Pure stdlib — no external Python libs required.
 
-Examples
+🧰 Prerequisites
 
-Command
+Python 3.x
 
-Description
+If using Nmap integration: Nmap binary must be installed and in your PATH.
 
+🚀 Quick Start
+# Default scan (1-1024) with 100 threads
 python port_scanner.py 192.168.1.1
 
-Scans default ports 1-1024 with 100 threads.
-
+# Fast scan (top 51 ports)
 python port_scanner.py example.com -F
 
-Runs a fast scan against the top 51 common ports.
-
+# Scan specific ports and use Host header
 python port_scanner.py target.net -p 80,443 -H app.vhost.com
 
-Scans ports 80 and 443, explicitly setting the Host header for HTTP checks.
-
+# Fast scan, save results, then run Nmap on discovered ports
 python port_scanner.py 10.10.10.1 -F --nmap-scan -o result.log
 
-Performs a fast scan, saves results to result.log, and then runs a targeted Nmap scan on all open ports found.
+📥 Command-line Options (common)
+usage: port_scanner.py <target> [options]
 
-Executes a targeted Nmap Service/Script scan on found open ports.
+-positional:
+  target                target IP or hostname
+
+-options:
+  -p, --ports           ports: ranges (1-1024), list (80,443), or -F for top-ports
+  -t, --threads         number of worker threads (default: 100)
+  -H, --host-header     custom Host header for HTTP checks (vhost support)
+  -F                    quick scan (top 51 common ports)
+  --nmap-scan           run nmap -sV -sC against discovered open ports
+  -o, --output          save scan output to file (e.g., result.log)
+  -v, --verbose         verbose output (more details per port)
+  -h, --help            show help
+
+🔍 What it does (under the hood)
+
+Tries TCP connect to each port using multithreading.
+
+For ports that look like web ports (80, 443, 8080, …), sends an HTTP HEAD request to fetch:
+
+HTTP status code
+
+Server header (banner)
+
+Optional Host: header if -H provided
+
+Collects all open ports and (if --nmap-scan) spawns Nmap to run -sV -sC on those ports for deep fingerprinting.
+
+🧾 Example Output (snip)
+[+] 192.168.1.10:22  OPEN  (ssh - OpenSSH_8.4)
+[+] 192.168.1.10:80  OPEN  HTTP/1.1 200 OK  Server: nginx/1.18.0
+[+] 192.168.1.10:443 OPEN  TLS?  Server: Apache/2.4.41 (Ubuntu)
+
+[INFO] Launching: nmap -sV -sC -p 22,80,443 192.168.1.10
+
+⚠️ Notes & Tips
+
+Nmap integration requires Nmap installed & in PATH. If Nmap is missing, the scanner will still run but will skip deep scans.
+
+Use -H when scanning applications behind load balancers or when the target uses virtual hosts.
+
+Fast scans (-F) are great for quick recon; use full ranges for an exhaustive check.
+
+Running wide scans on infrastructure you don’t own/authorize can be illegal. Always have permission.
+
+🛠️ Contributing
+
+Want to add features (e.g., more HTTP fingerprints, TLS cert parsing, or output formats like JSON)? Pull requests are welcome. Keep contributions focused, well-documented, and backward compatible.
+
+📄 License
+
+MIT — do whatever you want, but please don’t be evil. Attribution appreciated.
+
+If you want, I can:
+
+Add a sleek ASCII/emoji banner for the CLI,
+
+Create JSON/CSV export options, or
+
+Draft a short usage.md with screenshots for a README directory.
